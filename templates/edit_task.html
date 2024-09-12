@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Editar Tarefa</title>
+</head>
+<body>
+    <h1>Editar Tarefa</h1>
+    <form method="POST">
+        <label for="status">Status:</label>
+        <input type="text" name="status" id="status" value="{{ task.status }}" required>
+        <br>
+        <input type="submit" value="Salvar">
+    </form>
+    <a href="{{ url_for('adicionar.dashboard') }}">Voltar</a>
+</body>
+</html>
