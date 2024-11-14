@@ -1,17 +1,33 @@
 {% extends "base.html" %}
+
 {% block content %}
 <h2>{{ title }}</h2>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div class="flash-messages">
+            {% for category, message in messages %}
+                <div class="flash {{ category }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
+{% endwith %}
+
 <form method="POST">
-    <label>Título:</label>
-    <input type="text" name="title" value="{{ task.title if task else '' }}" required>
-    <label>Descrição:</label>
-    <textarea name="description">{{ task.description if task else '' }}</textarea>
-    <label>Status:</label>
-    <select name="status">
+    <label for="title">Título:</label>
+    <input id="title" type="text" name="title" value="{{ task.title if task else '' }}" required placeholder="Digite o título da tarefa">
+
+    <label for="description">Descrição:</label>
+    <textarea id="description" name="description" placeholder="Descreva a tarefa">{{ task.description if task else '' }}</textarea>
+
+    <label for="status">Status:</label>
+    <select id="status" name="status">
         <option value="Pendente" {% if task and task.status == 'Pendente' %}selected{% endif %}>Pendente</option>
         <option value="Em andamento" {% if task and task.status == 'Em andamento' %}selected{% endif %}>Em andamento</option>
         <option value="Concluída" {% if task and task.status == 'Concluída' %}selected{% endif %}>Concluída</option>
     </select>
-    <button type="submit">Salvar</button>
+
+    <button type="submit">{{ 'Atualizar' if task else 'Criar' }}</button>
 </form>
+
 {% endblock %}

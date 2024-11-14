@@ -5,6 +5,15 @@ from flask_login import login_user, current_user, logout_user, login_required
 
 main = Blueprint('main', __name__)
 
+
+def validate_task_form(title, description):
+    """Função para validar os campos do formulário da tarefa"""
+    if not title or not description:
+        flash("Por favor, preencha todos os campos.", "danger")
+        return False
+    return True
+
+
 @main.route('/', methods=['GET', 'POST'])
 def register():
     if current_user.is_authenticated:
@@ -69,7 +78,7 @@ def logout():
 @main.route('/dashboard')
 @login_required
 def dashboard():
-    tasks = Task.query.filter_by(owner=current_user).all()
+    tasks = Task.query.filter_by(owner_id=current_user.id).all()
     return render_template('dashboard.html', tasks=tasks)
 
 
@@ -80,11 +89,10 @@ def new_task():
         title = request.form.get('title')
         description = request.form.get('description')
 
-        if not title or not description:
-            flash("Por favor, preencha todos os campos.", "danger")
+        if not validate_task_form(title, description):
             return redirect(url_for('main.new_task'))
 
-        task = Task(title=title, description=description, status="Pendente", owner=current_user)
+        task = Task(title=title, description=description, status="Pendente", owner_id=current_user.id)
         db.session.add(task)
         db.session.commit()
 
@@ -99,7 +107,8 @@ def new_task():
 def update_task(task_id):
     task = Task.query.get_or_404(task_id)
 
-    if task.owner != current_user:
+    # Verificar se o usuário logado é o proprietário da tarefa
+    if task.owner_id != current_user.id:
         flash("Você não tem permissão para editar esta tarefa.", "danger")
         return redirect(url_for('main.dashboard'))
 
@@ -108,14 +117,16 @@ def update_task(task_id):
         task.description = request.form.get('description')
         task.status = request.form.get('status')
 
-        if not task.title or not task.description:
-            flash("Por favor, preencha todos os campos.", "danger")
+        if not validate_task_form(task.title, task.description):
             return redirect(url_for('main.update_task', task_id=task.id))
 
-        db.session.commit()
-
-        flash("Tarefa atualizada com sucesso!", "success")
-        return redirect(url_for('main.dashboard'))
+        try:
+            db.session.commit()
+            flash("Tarefa atualizada com sucesso!", "success")
+            return redirect(url_for('main.dashboard'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f"Erro ao atualizar a tarefa: {e}", "danger")
 
     return render_template('task.html', title="Editar Tarefa", task=task)
 
@@ -125,12 +136,17 @@ def update_task(task_id):
 def delete_task(task_id):
     task = Task.query.get_or_404(task_id)
 
-    if task.owner != current_user:
+    # Verificar se o usuário logado é o proprietário da tarefa
+    if task.owner_id != current_user.id:
         flash("Você não tem permissão para deletar esta tarefa.", "danger")
         return redirect(url_for('main.dashboard'))
 
-    db.session.delete(task)
-    db.session.commit()
+    try:
+        db.session.delete(task)
+        db.session.commit()
+        flash("Tarefa deletada com sucesso!", "success")
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Erro ao deletar a tarefa: {e}", "danger")
 
-    flash("Tarefa deletada com sucesso!", "success")
     return redirect(url_for('main.dashboard'))
