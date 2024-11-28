@@ -22,6 +22,7 @@ class User(db.Model, UserMixin):
     # Método especial para representação do objeto (útil para depuração e logs)
     def __repr__(self):
         return f"User('{self.username}', '{self.email}')"
+        # Retorna uma representação string do objeto User, exibindo seu nome de usuário e email.
 
 # Definição do modelo Task, que representa uma tarefa no sistema
 class Task(db.Model):
@@ -36,3 +37,4 @@ class Task(db.Model):
     # Método especial para representação do objeto (útil para depuração e logs)
     def __repr__(self):
         return f"Task('{self.title}', '{self.date_created}', '{self.status}')"
+        # Retorna uma representação string do objeto Task, exibindo seu título, data de criação e status.

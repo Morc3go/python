@@ -1,5 +1,7 @@
 # Importando as bibliotecas necessárias para rotas, templates, redirecionamentos e manipulação de formulários
 from flask import Blueprint, render_template, url_for, flash, redirect, request
+from flask_bcrypt import generate_password_hash
+import re  # Adicionando a importação do módulo re
 # Importando as instâncias de banco de dados e bcrypt para criptografar senhas
 from app import db, bcrypt
 # Importando os modelos User e Task do banco de dados
@@ -18,7 +20,7 @@ def validate_task_form(title, description):
         return False
     return True
 
-# Rota para a página de registro de novos usuários
+# Rota para registro de novos usuários
 @main.route('/', methods=['GET', 'POST'])
 def register():
     # Se o usuário já estiver autenticado, redireciona para o dashboard
@@ -28,11 +30,17 @@ def register():
     # Lógica para processar o formulário de registro (método POST)
     if request.method == 'POST':
         username = request.form.get('username')
+        email = request.form.get('email')
         password = request.form.get('password')
 
         # Validação de campos obrigatórios
-        if not username or not password:
+        if not username or not email or not password:
             flash("Por favor, preencha todos os campos.", "danger")
+            return redirect(url_for('main.register'))
+
+        # Validação do email para garantir que seja um Gmail
+        if not re.match(r"[^@]+@gmail\.com$", email):
+            flash("Por favor, insira um email válido do Gmail.", "danger")
             return redirect(url_for('main.register'))
 
         # Verifica se o nome de usuário já existe no banco de dados
@@ -42,7 +50,7 @@ def register():
 
         # Criptografa a senha antes de salvar
         hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
-        user = User(username=username, password=hashed_password)
+        user = User(username=username, email=email, password=hashed_password)
 
         # Adiciona o novo usuário ao banco de dados
         db.session.add(user)

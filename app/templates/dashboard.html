@@ -2,16 +2,20 @@
 {% block content %}
 <h2>Minhas Tarefas</h2>
 <a href="{{ url_for('main.new_task') }}">Criar Nova Tarefa</a>
+
 <ul>
     {% for task in tasks %}
         <li>
             <h3>{{ task.title }} ({{ task.status }})</h3>
             <p>{{ task.description }}</p>
             <a href="{{ url_for('main.update_task', task_id=task.id) }}">Editar</a>
-            <form action="{{ url_for('main.delete_task', task_id=task.id) }}" method="POST" style="display:inline;">
-                <button type="submit">Deletar</button>
+
+            <!-- Formulário para deletar tarefa com confirmação -->
+            <form action="{{ url_for('main.delete_task', task_id=task.id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Você tem certeza que deseja deletar esta tarefa?');">
+                <button type="submit" class="delete-btn">Deletar</button>
             </form>
         </li>
     {% endfor %}
 </ul>
+
 {% endblock %}
